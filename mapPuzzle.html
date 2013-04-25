@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9" />
+    <!--The viewport meta tag is used to improve the presentation and behavior of the samples 
+    on iOS devices-->
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Map Puzzle</title>
+
+    <link rel="stylesheet" type="text/css" href="http://tm.arcgisonline.cn:8038/App1/arcgis_js_v33_api/library/3.0/jsapi/js/dojo/dijit/themes/claro/claro.css">
+    
+    <script type="text/javascript">dojoConfig = { parseOnLoad:true }</script>
+    <script type="text/javascript" src="http://tm.arcgisonline.cn:8038/App1/arcgis_js_v30_api/library/3.0/jsapicompact/Default.ashx"></script>
+    <script type="text/javascript" src="./thedata.js"></script>
+    <style>
+    html, body { height: 100%; width: 100%; margin: 0; padding: 0px; }
+    #count{
+            position:absolute;
+            z-index: 4;
+            top:20px;
+            right:20px;
+            width: 200px;
+            height: 50px;
+            border: 2px solid #666666;
+            -webkit-user-select: none;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            cursor:pointer;
+            background: #fff;
+        }
+    </style>
+    <script type="text/javascript">
+    dojo.require("esri.map");
+    dojo.require("esri.tasks.identify");
+    dojo.require("dijit.layout.ContentPane");
+    dojo.require("dijit.layout.TabContainer");
+    dojo.require("dijit.form.Button");
+    dojo.require("dojox.gfx.move");
+
+    var map, identifyTask, identifyParams, symbol;
+    var countnumber=0;
+    var layer2results, layer3results, layer4results,offsetlayer,orignlayer;
+
+    function init() {
+        map = new esri.Map("mapDiv",{
+            extent:new esri.geometry.Extent({"xmin":5054037.888612024,"ymin":3242363.875468582,"xmax":19260318.217577964,"ymax":6911341.233156066,"spatialReference":{"wkid":102100}}),
+            wrapAround180:true
+        });
+        dojo.connect(map, "onLoad", initFunctionality);
+        var landBaseLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://www.arcgisonline.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer");
+        offsetlayer=new esri.layers.GraphicsLayer();
+        orignlayer=new esri.layers.GraphicsLayer()
+        map.addLayer(landBaseLayer);
+        map.addLayer(orignlayer);
+        map.addLayer(offsetlayer);
+            //console.log(tianjin);
+
+
+        }
+        function updatePolyGeometry (map,geometry, /*rings or paths*/ segments, transform) {
+            
+            var firstPt = geometry.getPoint(0, 0);
+            var newMapPt = map.toMap(map.toScreen(firstPt).offset(transform.dx, transform.dy));
+            var d_mapX = newMapPt.x - firstPt.x;
+            var d_mapY = newMapPt.y - firstPt.y;
+
+    //var rings = geometry.rings;
+    for (var i = 0; i < segments.length; i++) {
+      var seg = segments[i];
+      for (var j = 0; j < seg.length; j++) {
+        var point = geometry.getPoint(i, j);
+        geometry.setPoint(i, j, point.offset(d_mapX, d_mapY));
+    }
+}
+return geometry;
+}
+
+function initFunctionality(map) {
+            //dojo.connect(map, "onClick", doIdentify)
+            symbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([255,0,0,0]), 0), new dojo.Color([255,255,0,0]));
+            symbol1 = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([255,0,0]), 1), new dojo.Color([255,255,0,0.25]));
+            symbol2 = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([0,255,0]), 1), new dojo.Color([0,255,0,0.25]));
+
+            //
+            //var screengeometry=esri.geometry.toScreenGeometry(map.extent,800,600,mapgeometry);
+            //provinces=[guangdong];
+            dojo.forEach(provinces,function(item,index){
+                var offsetxinjiang={};
+                dojo.mixin(offsetxinjiang,{results:[{geometry:{rings:[]}}]});
+                var xRange=map.extent.xmax-map.extent.xmin;
+                var yRange=map.extent.ymax-map.extent.ymin;
+                var originrings=item.results[0].geometry.rings.length===1?item.results[0].geometry.rings[0]:item.results[0].geometry.rings;
+                var offsetring;
+            //offsetxinjiang.results[0].geometry.rings[0]=dojo.map(originrings,function(item){var t1=item[0]+300000;var t2=item[1]-500000;return [t1,t2]});
+            var randomx=(Math.random()-Math.random())*xRange;
+            var randomy=(Math.random()-Math.random())*yRange;
+            if(item.results[0].geometry.rings.length===1){
+            offsetring=dojo.map(originrings,function(item){var t1=item[0]+randomx;var t2=item[1]-randomy;return [t1,t2]});
+            offsetxinjiang.results[0].geometry.rings[0]=offsetring;
+        }else{
+            var offsetrings=[];
+            dojo.forEach(originrings,function(ringitem,i){
+                offsetrings[i]=dojo.map(ringitem,function(item){var t1=item[0]+randomx;var t2=item[1]-randomy;return [t1,t2]});
+            })
+            offsetxinjiang.results[0].geometry.rings=offsetrings;
+        }
+            //offsetxinjiang.results[0].value=item.results[0].value;
+            
+            //xinjiang.results[0].geometry.rings[0]=originrings;
+            var offsetmapgeometry=new esri.geometry.Polygon(offsetxinjiang.results[0].geometry);
+            var truegraphic=orignlayer.add(new esri.Graphic(new esri.geometry.Polygon(item.results[0].geometry),symbol,{value:item.results[0].value}));
+            //var truedojoShape=truegraphic.getDojoShape();
+            //console.log(truedojoShape);
+            //mapgeometry=esri.geometry.toMapGeometry(map.extent,800,600,screengeometry);
+            offsetlayer.add(new esri.Graphic(offsetmapgeometry,symbol1,{value:item.results[0].value,index:index}));
+        });
+        dojo.connect(offsetlayer,"onClick",function(evt){
+            debugger;
+            console.log(evt);
+            dojo.stopEvent(evt);
+            var clickgraphic=evt.graphic;
+            var provinceindex=
+            clickgraphic.getDojoShape().moveToFront();
+            var name=clickgraphic.attributes.value;
+            var offsetdojoShape = clickgraphic.getDojoShape();
+            var moveable = new dojox.gfx.Moveable(offsetdojoShape);
+            var realid;
+            dojo.forEach(orignlayer.graphics,function(item,i){
+                if(item.attributes.value==name){
+                    realid=i;
+                }
+            })
+            dojo.connect(moveable, "onMoveStop", function(mover) {
+                var tx = offsetdojoShape.getTransform();
+                offsetdojoShape.setTransform(null);
+                clickgraphic.setGeometry(updatePolyGeometry(map,clickgraphic.geometry,clickgraphic.geometry.rings,tx));
+
+        //offsetdojoShape.setTransform(offsetdojoShape.parent.getTransform());
+        var origintopleft={top:orignlayer.graphics[realid]._shape.bbox.t,left:orignlayer.graphics[realid]._shape.bbox.l};
+        var transformedtopleft={top:offsetdojoShape.bbox.t,left:offsetdojoShape.bbox.l};
+        if(Math.abs(origintopleft.top-transformedtopleft.top)<=5&&Math.abs(origintopleft.left-transformedtopleft.left)<=5){
+            moveable.destroy();
+            //offsetdojoShape.setTransform(null);
+            orignlayer.graphics[realid].setSymbol(symbol2);
+            offsetlayer.remove(clickgraphic);
+            countnumber+=1;
+            dojo.byId("countnumber").innerHTML=countnumber;
+        }
+
+        console.log(offsetdojoShape);
+
+    });
+
+        });
+}
+    /*
+            var offsetdojoShape = graphic.getDojoShape();
+            var moveable = new dojox.gfx.Moveable(offsetdojoShape);
+        
+        // Update the geometry at the end of move
+            var moveStopToken = dojo.connect(moveable, "onMoveStop", function(mover) {
+          // Get the transformation that was applied to 
+          // the shape since the last move
+          var tx = offsetdojoShape.getTransform();
+          
+          //var startgeometry = graphic.geometry;
+          //var endPoint = esri.geometry.toMapGeometry(esri.geometry.toScreenGeometry(map.extent, 800, 600, startgeometry).offset(tx.dx, tx.dy));
+          
+          // clear out the transformation
+          //dojoShape.applyTransform(tx);
+          offsetdojoShape.setTransform(tx);
+          var origintopleft={top:map.graphics.graphics[0]._shape.bbox.t,left:map.graphics.graphics[0]._shape.bbox.l};
+          var transformedtopleft={top:offsetdojoShape.bbox.t+offsetdojoShape.matrix.dy,left:offsetdojoShape.bbox.l+offsetdojoShape.matrix.dx};
+          if(Math.abs(origintopleft.top-transformedtopleft.top)<=10&&Math.abs(origintopleft.left-transformedtopleft.left)<=10){
+            moveable.destroy();
+            //offsetdojoShape.setTransform(null);
+            map.graphics.graphics[0].setSymbol(symbol2);
+            map.graphics.remove(graphic);
+            //dojo.disconnect(moveStopToken);
+          }
+          console.log(offsetdojoShape);
+
+          
+          // update the graphic geometry
+          //graphic.setGeometry(endPoint);
+          
+          // You can find quite a bit of information about
+          // applying transformations to Dojo gfx shapes in this
+          // document:
+          // http://docs.dojocampus.org/dojox/gfx#coordinates-and-transformations
+        });
+            })
+
+}*/
+
+
+dojo.addOnLoad(init);
+</script>
+
+</head>
+<body class="claro">
+    <div id="mapDiv" style="width:100%; height:100%; border:1px solid #000;">
+        <div id="count">
+            <span id="countnumber"></span><span>/32已完成</span>
+            </div>
+    </div>
+</body>
+</html>
