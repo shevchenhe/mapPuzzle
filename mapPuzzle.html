@@ -39,121 +39,154 @@
     dojo.require("dojox.gfx.move");
 
     var map, identifyTask, identifyParams, symbol;
-    var countnumber=0;
-    var layer2results, layer3results, layer4results,offsetlayer,orignlayer;
+    var countnumber = 0;
+    var layer2results, layer3results, layer4results, offsetlayer, orignlayer;
 
     function init() {
-        map = new esri.Map("mapDiv",{
-            extent:new esri.geometry.Extent({"xmin":5054037.888612024,"ymin":3242363.875468582,"xmax":19260318.217577964,"ymax":6911341.233156066,"spatialReference":{"wkid":102100}}),
-            wrapAround180:true
+        map = new esri.Map("mapDiv", {
+            extent: new esri.geometry.Extent({
+                "xmin": 5054037.888612024,
+                "ymin": 3242363.875468582,
+                "xmax": 19260318.217577964,
+                "ymax": 6911341.233156066,
+                "spatialReference": {
+                    "wkid": 102100
+                }
+            }),
+            wrapAround180: true
         });
         dojo.connect(map, "onLoad", initFunctionality);
         var landBaseLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://www.arcgisonline.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer");
-        offsetlayer=new esri.layers.GraphicsLayer();
-        orignlayer=new esri.layers.GraphicsLayer()
+        offsetlayer = new esri.layers.GraphicsLayer();
+        orignlayer = new esri.layers.GraphicsLayer()
         map.addLayer(landBaseLayer);
         map.addLayer(orignlayer);
         map.addLayer(offsetlayer);
-            //console.log(tianjin);
+        //console.log(tianjin);
 
 
-        }
-        function updatePolyGeometry (map,geometry, /*rings or paths*/ segments, transform) {
-            
-            var firstPt = geometry.getPoint(0, 0);
-            var newMapPt = map.toMap(map.toScreen(firstPt).offset(transform.dx, transform.dy));
-            var d_mapX = newMapPt.x - firstPt.x;
-            var d_mapY = newMapPt.y - firstPt.y;
-
-    //var rings = geometry.rings;
-    for (var i = 0; i < segments.length; i++) {
-      var seg = segments[i];
-      for (var j = 0; j < seg.length; j++) {
-        var point = geometry.getPoint(i, j);
-        geometry.setPoint(i, j, point.offset(d_mapX, d_mapY));
     }
-}
-return geometry;
-}
 
-function initFunctionality(map) {
-            //dojo.connect(map, "onClick", doIdentify)
-            symbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([255,0,0,0]), 0), new dojo.Color([255,255,0,0]));
-            symbol1 = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([255,0,0]), 1), new dojo.Color([255,255,0,0.25]));
-            symbol2 = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([0,255,0]), 1), new dojo.Color([0,255,0,0.25]));
+    function updatePolyGeometry(map, geometry, /*rings or paths*/ segments, transform) {
 
-            //
-            //var screengeometry=esri.geometry.toScreenGeometry(map.extent,800,600,mapgeometry);
-            //provinces=[guangdong];
-            dojo.forEach(provinces,function(item,index){
-                var offsetxinjiang={};
-                dojo.mixin(offsetxinjiang,{results:[{geometry:{rings:[]}}]});
-                var xRange=map.extent.xmax-map.extent.xmin;
-                var yRange=map.extent.ymax-map.extent.ymin;
-                var originrings=item.results[0].geometry.rings.length===1?item.results[0].geometry.rings[0]:item.results[0].geometry.rings;
-                var offsetring;
-            //offsetxinjiang.results[0].geometry.rings[0]=dojo.map(originrings,function(item){var t1=item[0]+300000;var t2=item[1]-500000;return [t1,t2]});
-            var randomx=(Math.random()-Math.random())*xRange;
-            var randomy=(Math.random()-Math.random())*yRange;
-            if(item.results[0].geometry.rings.length===1){
-            offsetring=dojo.map(originrings,function(item){var t1=item[0]+randomx;var t2=item[1]-randomy;return [t1,t2]});
-            offsetxinjiang.results[0].geometry.rings[0]=offsetring;
-        }else{
-            var offsetrings=[];
-            dojo.forEach(originrings,function(ringitem,i){
-                offsetrings[i]=dojo.map(ringitem,function(item){var t1=item[0]+randomx;var t2=item[1]-randomy;return [t1,t2]});
-            })
-            offsetxinjiang.results[0].geometry.rings=offsetrings;
+        var firstPt = geometry.getPoint(0, 0);
+        var newMapPt = map.toMap(map.toScreen(firstPt).offset(transform.dx, transform.dy));
+        var d_mapX = newMapPt.x - firstPt.x;
+        var d_mapY = newMapPt.y - firstPt.y;
+
+        //var rings = geometry.rings;
+        for (var i = 0; i < segments.length; i++) {
+            var seg = segments[i];
+            for (var j = 0; j < seg.length; j++) {
+                var point = geometry.getPoint(i, j);
+                geometry.setPoint(i, j, point.offset(d_mapX, d_mapY));
+            }
         }
+        return geometry;
+    }
+
+    function initFunctionality(map) {
+        //dojo.connect(map, "onClick", doIdentify)
+        symbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([255, 0, 0, 0]), 0), new dojo.Color([255, 255, 0, 0]));
+        symbol1 = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([255, 0, 0]), 1), new dojo.Color([255, 255, 0, 0.25]));
+        symbol2 = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([0, 255, 0]), 1), new dojo.Color([0, 255, 0, 0.25]));
+
+        //
+        //var screengeometry=esri.geometry.toScreenGeometry(map.extent,800,600,mapgeometry);
+        //provinces=[guangdong];
+        dojo.forEach(provinces, function(item, index) {
+            var offsetxinjiang = {};
+            dojo.mixin(offsetxinjiang, {
+                results: [{
+                    geometry: {
+                        rings: []
+                    }
+                }]
+            });
+            var xRange = (map.extent.xmax - map.extent.xmin)/2;
+            var yRange = (map.extent.ymax - map.extent.ymin)/2;
+            var originrings = item.results[0].geometry.rings.length === 1 ? item.results[0].geometry.rings[0] : item.results[0].geometry.rings;
+            var offsetring;
+            //offsetxinjiang.results[0].geometry.rings[0]=dojo.map(originrings,function(item){var t1=item[0]+300000;var t2=item[1]-500000;return [t1,t2]});
+            var randomx = (Math.random() - Math.random()) * xRange;
+            var randomy = (Math.random() - Math.random()) * yRange;
+            if (item.results[0].geometry.rings.length === 1) {
+                offsetring = dojo.map(originrings, function(item) {
+                    var t1 = item[0] + randomx;
+                    var t2 = item[1] - randomy;
+                    return [t1, t2]
+                });
+                offsetxinjiang.results[0].geometry.rings[0] = offsetring;
+            } else {
+                var offsetrings = [];
+                dojo.forEach(originrings, function(ringitem, i) {
+                    offsetrings[i] = dojo.map(ringitem, function(item) {
+                        var t1 = item[0] + randomx;
+                        var t2 = item[1] - randomy;
+                        return [t1, t2]
+                    });
+                })
+                offsetxinjiang.results[0].geometry.rings = offsetrings;
+            }
             //offsetxinjiang.results[0].value=item.results[0].value;
-            
+
             //xinjiang.results[0].geometry.rings[0]=originrings;
-            var offsetmapgeometry=new esri.geometry.Polygon(offsetxinjiang.results[0].geometry);
-            var truegraphic=orignlayer.add(new esri.Graphic(new esri.geometry.Polygon(item.results[0].geometry),symbol,{value:item.results[0].value}));
+            var offsetmapgeometry = new esri.geometry.Polygon(offsetxinjiang.results[0].geometry);
+            var truegraphic = orignlayer.add(new esri.Graphic(new esri.geometry.Polygon(item.results[0].geometry), symbol, {
+                value: item.results[0].value
+            }));
             //var truedojoShape=truegraphic.getDojoShape();
             //console.log(truedojoShape);
             //mapgeometry=esri.geometry.toMapGeometry(map.extent,800,600,screengeometry);
-            offsetlayer.add(new esri.Graphic(offsetmapgeometry,symbol1,{value:item.results[0].value,index:index}));
+            offsetlayer.add(new esri.Graphic(offsetmapgeometry, symbol1, {
+                value: item.results[0].value,
+                index: index
+            }));
         });
-        dojo.connect(offsetlayer,"onClick",function(evt){
+        dojo.connect(offsetlayer, "onClick", function(evt) {
             debugger;
             console.log(evt);
             dojo.stopEvent(evt);
-            var clickgraphic=evt.graphic;
-            var provinceindex=
-            clickgraphic.getDojoShape().moveToFront();
-            var name=clickgraphic.attributes.value;
+            var clickgraphic = evt.graphic;
+            var provinceindex = clickgraphic.getDojoShape().moveToFront();
+            var name = clickgraphic.attributes.value;
             var offsetdojoShape = clickgraphic.getDojoShape();
             var moveable = new dojox.gfx.Moveable(offsetdojoShape);
             var realid;
-            dojo.forEach(orignlayer.graphics,function(item,i){
-                if(item.attributes.value==name){
-                    realid=i;
+            dojo.forEach(orignlayer.graphics, function(item, i) {
+                if (item.attributes.value == name) {
+                    realid = i;
                 }
             })
             dojo.connect(moveable, "onMoveStop", function(mover) {
                 var tx = offsetdojoShape.getTransform();
                 offsetdojoShape.setTransform(null);
-                clickgraphic.setGeometry(updatePolyGeometry(map,clickgraphic.geometry,clickgraphic.geometry.rings,tx));
+                clickgraphic.setGeometry(updatePolyGeometry(map, clickgraphic.geometry, clickgraphic.geometry.rings, tx));
 
-        //offsetdojoShape.setTransform(offsetdojoShape.parent.getTransform());
-        var origintopleft={top:orignlayer.graphics[realid]._shape.bbox.t,left:orignlayer.graphics[realid]._shape.bbox.l};
-        var transformedtopleft={top:offsetdojoShape.bbox.t,left:offsetdojoShape.bbox.l};
-        if(Math.abs(origintopleft.top-transformedtopleft.top)<=5&&Math.abs(origintopleft.left-transformedtopleft.left)<=5){
-            moveable.destroy();
-            //offsetdojoShape.setTransform(null);
-            orignlayer.graphics[realid].setSymbol(symbol2);
-            offsetlayer.remove(clickgraphic);
-            countnumber+=1;
-            dojo.byId("countnumber").innerHTML=countnumber;
-        }
+                //offsetdojoShape.setTransform(offsetdojoShape.parent.getTransform());
+                var origintopleft = {
+                    top: orignlayer.graphics[realid]._shape.bbox.t,
+                    left: orignlayer.graphics[realid]._shape.bbox.l
+                };
+                var transformedtopleft = {
+                    top: offsetdojoShape.bbox.t,
+                    left: offsetdojoShape.bbox.l
+                };
+                if (Math.abs(origintopleft.top - transformedtopleft.top) <= 5 && Math.abs(origintopleft.left - transformedtopleft.left) <= 5) {
+                    moveable.destroy();
+                    //offsetdojoShape.setTransform(null);
+                    orignlayer.graphics[realid].setSymbol(symbol2);
+                    offsetlayer.remove(clickgraphic);
+                    countnumber += 1;
+                    dojo.byId("countnumber").innerHTML = countnumber;
+                }
 
-        console.log(offsetdojoShape);
+                console.log(offsetdojoShape);
 
-    });
+            });
 
         });
-}
+    }
     /*
             var offsetdojoShape = graphic.getDojoShape();
             var moveable = new dojox.gfx.Moveable(offsetdojoShape);
